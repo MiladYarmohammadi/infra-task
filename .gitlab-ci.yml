@@ -1,0 +1,42 @@
+stages:
+  - build
+  - package
+  - test
+  - production
+
+variables:
+  APP_VERSION: $CI_PIPELINE_IID
+
+build website:
+  image: php:8.2-alpine
+  stage: build
+  script:
+    - yarn install
+    - yarn lint
+    - yarn test
+    - yarn build
+    - "sed -i \"s\/Infra Task\/Infra Task Version: $APP_VERSION\/g\" resources/views/welcome.blade.php"
+
+  artifacts:
+    paths:
+      - build
+
+build docker image:
+  stage: package
+  image: docker:27.0.3
+  services:
+    - docker:27.0.3-dind
+  script:
+    - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER $CI_REGISTRY --password-stdin
+    - docker build -t $CI_REGISTRY_IMAGE -t $CI_REGISTRY_IMAGE:$APP_VERSION .
+    - docker image ls
+    - docker push --all-tags $CI_REGISTRY_IMAGE
+
+test docker image:
+  image: curlimages/curl
+  stage: test
+  services:
+    - name: $CI_REGISTRY_IMAGE:$APP_VERSION
+      alias: website
+  script:
+    - curl http://website | grep $APP_VERSION
