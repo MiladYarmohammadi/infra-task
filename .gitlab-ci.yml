@@ -41,6 +41,7 @@ pages:
   stage: production
   image: docker:27.0.3
   services:
+    - docker:27.0.3-dind
     - name: redis:7.4.0
       command:
         - redis-server --requirepass strong_password
