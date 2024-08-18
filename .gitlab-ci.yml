@@ -35,4 +35,4 @@ test docker image:
     - name: $CI_REGISTRY_IMAGE:$APP_VERSION
       alias: website
   script:
-    - curl http://website | grep $APP_VERSION
+    - curl http://website:8000 | grep $APP_VERSION
