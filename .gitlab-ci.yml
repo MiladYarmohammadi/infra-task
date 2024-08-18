@@ -46,10 +46,7 @@ pages:
         - redis-server --requirepass strong_password
       alias: redis
   script:
-    - docker run --hostname=infra-task --name=infra-task -p 80:8000 \
-     -e REDIS_CLIENT=predis -e REDIS_HOST=redis -e REDIS_USERNAME=default \
-     -e  REDIS_PASSWORD=strong_password -e REDIS_PORT=6379 -e CACHE_DRIVER=redis \
-     -d infra-task:latest
+    - docker run --hostname=infra-task --name=infra-task -p 80:8000 -e REDIS_CLIENT=predis -e REDIS_HOST=redis -e REDIS_USERNAME=default -e  REDIS_PASSWORD=strong_password -e REDIS_PORT=6379 -e CACHE_DRIVER=redis -d infra-task:latest
   artifacts:
     paths:
       # The folder that contains the files to be exposed at the Page URL
