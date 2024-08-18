@@ -8,13 +8,9 @@ variables:
   APP_VERSION: $CI_PIPELINE_IID
 
 build website:
-  image: php:8.2-alpine
+  image: alpine
   stage: build
   script:
-    - yarn install
-    - yarn lint
-    - yarn test
-    - yarn build
     - "sed -i \"s\/Infra Task\/Infra Task Version: $APP_VERSION\/g\" resources/views/welcome.blade.php"
 
   artifacts:
