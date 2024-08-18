@@ -43,17 +43,17 @@ pages:
   services:
     - name: docker:27.0.3-dind
       alias: docker
+      entrypoint: ["env", "-u", "DOCKER_HOST"]
     - name: redis:7.4.0
       command:
         - redis-server --requirepass strong_password
       alias: redis
+  variables:
+    DOCKER_HOST: tcp://docker:2375/
   script:
-    - docker run --hostname=infra-task --name=infra-task -p 80:8000 -e REDIS_CLIENT=predis -e REDIS_HOST=redis -e REDIS_USERNAME=default -e  REDIS_PASSWORD=strong_password -e REDIS_PORT=6379 -e CACHE_DRIVER=redis -d infra-task:latest
+    - docker run --hostname=infra-task --name=infra-task -p 80:8000 -e REDIS_CLIENT=predis -e REDIS_HOST=redis -e REDIS_USERNAME=default -e REDIS_PASSWORD=strong_password -e REDIS_PORT=6379 -e CACHE_DRIVER=redis -d infra-task:latest
   artifacts:
     paths:
-      # The folder that contains the files to be exposed at the Page URL
       - public
   rules:
-    # This ensures that only pushes to the default branch will trigger
-    # a pages deploy
     - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
