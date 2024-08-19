@@ -32,7 +32,7 @@ data:
     MEMCACHED_HOST=127.0.0.1
 
     REDIS_CLIENT=predis
-    REDIS_HOST=redis
+    REDIS_HOST=redis-headless
     REDIS_PASSWORD=strong_password
     REDIS_PORT=6379
 

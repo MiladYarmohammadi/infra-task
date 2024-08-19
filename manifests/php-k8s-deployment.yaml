@@ -78,10 +78,10 @@ spec:
               cpu: 100m
               memory: 200M
               ephemeral-storage: "1Gi"
-          volumes:
-            - name: env-file
-              configMap:
-                name: infra-task-config
-                items:
-                  - key: env
-                    path: .env
+      volumes:
+        - name: env-file
+          configMap:
+            name: infra-task-config
+            items:
+              - key: env
+                path: .env
