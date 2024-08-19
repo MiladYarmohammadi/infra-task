@@ -25,7 +25,7 @@ RUN pecl install redis && \
 COPY . .
 
 # Install application dependencies
-RUN composer install
+RUN composer install --no-ansi --no-dev --no-interaction --no-progress --no-scripts --optimize-autoloader
 
 # Set environment variables from .env file
 # ARG APP_ENV=development
