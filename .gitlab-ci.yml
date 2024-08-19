@@ -60,4 +60,5 @@ deploy to kubernetes:
   script: 
     - ssh $PRODUCTION_SERVER docker login -u $DOCKER_REGISTRY_USERNAME -p $DOCKER_REGISTRY_PASSWORD
     - ssh $PRODUCTION_SERVER microk8s kubectl set image deployment.apps $APP_NAME $APP_NAME=$DOCKER_REGISTRY_IMAGE:$APP_VERSION
+    - ssh $PRODUCTION_SERVER microk8s kubectl get all
 
