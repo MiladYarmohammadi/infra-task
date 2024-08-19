@@ -58,6 +58,6 @@ deploy to kubernetes:
     - chmod 600 $SSH_PRIVATE_KEY
     - ssh-add $SSH_PRIVATE_KEY
   script: 
-    - ssh $PRODUCTION_SERVER echo $DOCKER_REGISTRY_PASSWORD | docker login -u $DOCKER_REGISTRY_USERNAME --password-stdin
+    - ssh $PRODUCTION_SERVER `echo $DOCKER_REGISTRY_PASSWORD | docker login -u $DOCKER_REGISTRY_USERNAME --password-stdin`
     - ssh $PRODUCTION_SERVER microk8s kubectl set image deployment.apps $APP_NAME $APP_NAME=$DOCKER_REGISTRY_IMAGE:$APP_VERSION
 
