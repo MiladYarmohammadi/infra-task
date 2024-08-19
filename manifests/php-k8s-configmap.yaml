@@ -9,7 +9,7 @@ data:
     APP_ENV=local
     APP_KEY=base64:MgP5YBWHksmoLmRWBmSr183GxnOjESZ9voXUojpLxRw=
     APP_DEBUG=true
-    APP_URL=http://localhost
+    APP_URL=http://task.seroadmap.ir
 
     LOG_CHANNEL=stack
     LOG_DEPRECATIONS_CHANNEL=null
