@@ -40,12 +40,12 @@ spec:
           envFrom:
             - configMapRef:
                 name: infra-task-config
-          image: miladroid/infra-task:32
+          image: miladroid/infra-task:34
           imagePullPolicy: Always
-          lifecycle:
-            postStart:
-              exec:
-                command: [ "/usr/local/bin/php", "artisan", "config:cache" ]
+#          lifecycle:
+#            postStart:
+#              exec:
+#                command: [ "/usr/local/bin/php", "artisan", "config:cache" ]
           ports:
             - containerPort: 8000
               protocol: TCP

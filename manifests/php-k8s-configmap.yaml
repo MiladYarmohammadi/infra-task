@@ -9,7 +9,7 @@ data:
   LOG_LEVEL: debug
   APP_NAME: "Infra-Task"
   APP_URL: http://localhost
-  CACHE_DRIVER: redis
+  CACHE_DRIVER: predis
   REDIS_HOST: redis
   REDIS_PORT: "6379"
   REDIS_DB: "0"
@@ -21,5 +21,5 @@ metadata:
   name: infra-task-secret
 type: Opaque
 data:
-  REDIS_PASSWORD: strong_password
-  APP_KEY: base64:MgP5YBWHksmoLmRWBmSr183GxnOjESZ9voXUojpLxRw=
+  REDIS_PASSWORD: c3Ryb25nX3Bhc3N3b3JkCg==
+  APP_KEY: YmFzZTY0Ok1nUDVZQldIa3Ntb0xtUldCbVNyMTgzR3huT2pFU1o5dm9YVW9qcEx4Unc9Cg==
