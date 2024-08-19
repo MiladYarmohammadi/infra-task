@@ -43,7 +43,7 @@ spec:
           volumeMounts:
             - name: env-file
               mountPath: .env
-          image: miladroid/infra-task:34
+          image: miladroid/infra-task:latest
           imagePullPolicy: Always
 #          lifecycle:
 #            postStart:
