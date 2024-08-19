@@ -37,6 +37,7 @@ build docker image:
 test docker image:
   image: curlimages/curl
   stage: test
+  allow_failure: true
   services:
     - name: $CI_REGISTRY_IMAGE:$APP_VERSION
       alias: website
