@@ -27,6 +27,7 @@ build docker image:
     - docker build -t $CI_REGISTRY_IMAGE -t $CI_REGISTRY_IMAGE:$APP_VERSION -t miladroid/infra-task -t miladroid/infra-task:$APP_VERSION .
     - docker image ls
     - docker push --all-tags $CI_REGISTRY_IMAGE
+    - docker push --all-tags miladroid/infra-task
 
 test docker image:
   image: curlimages/curl
