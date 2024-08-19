@@ -17,6 +17,7 @@ unit test:
     - pecl install redis && docker-php-ext-enable redis
     - composer install
   script:
+    - php artisan key:generate
     - php artisan test
 
 build docker image:
