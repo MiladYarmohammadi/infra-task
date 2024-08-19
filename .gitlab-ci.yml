@@ -8,7 +8,7 @@ stages:
 variables:
   APP_VERSION: $CI_PIPELINE_IID
 
-.unit test:
+unit test:
   image: php:8.2-alpine
   stage: unit test
   before_script:
@@ -26,6 +26,14 @@ build docker image:
   image: docker:27.0.3
   services:
     - docker:27.0.3-dind
+  before_script:
+    - cp .env.example .env
+    - sed -i "s/APP_KEY=.*/APP_KEY=$APP_KEY/" .env
+    - sed -i "s/APP_KEY=.*/APP_KEY=$APP_KEY/" .env
+    - sed -i "s/APP_KEY=.*/APP_KEY=$APP_KEY/" .env
+    - sed -i "s/APP_KEY=.*/APP_KEY=$APP_KEY/" .env
+    - sed -i "s/APP_KEY=.*/APP_KEY=$APP_KEY/" .env
+    - sed -i "s/APP_KEY=.*/APP_KEY=$APP_KEY/" .env
   script:
     - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER $CI_REGISTRY --password-stdin
     - docker build -t $CI_REGISTRY_IMAGE -t $CI_REGISTRY_IMAGE:$APP_VERSION -t $DOCKER_REGISTRY_IMAGE -t $DOCKER_REGISTRY_IMAGE:$APP_VERSION .
@@ -34,7 +42,7 @@ build docker image:
     - echo $DOCKER_REGISTRY_PASSWORD | docker login -u $DOCKER_REGISTRY_USERNAME --password-stdin
     - docker push --all-tags $DOCKER_REGISTRY_IMAGE
 
-.test docker image:
+test docker image:
   image: curlimages/curl
   stage: test
   allow_failure: true
