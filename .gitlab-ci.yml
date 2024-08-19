@@ -7,7 +7,7 @@ stages:
 variables:
   APP_VERSION: $CI_PIPELINE_IID
 
-.versioning website:
+versioning website:
   image: alpine
   stage: build
   script:
