@@ -14,7 +14,7 @@ versioning website:
     - "sed -i \"s\/Infra Task\/Infra Task Version: $APP_VERSION\/g\" resources/views/welcome.blade.php"
   artifacts:
     paths:
-      - resources/views/welcome.blade.php
+      - resources/
 
 build docker image:
   stage: package
