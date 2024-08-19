@@ -1,0 +1,26 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: infra-task-config
+data:
+  APP_DEBUG: "true"
+  APP_ENV: production
+  #APP_KEY: changeme # same as main project
+  LOG_LEVEL: debug
+  APP_NAME: "Infra-Task"
+  APP_URL: http://localhost
+  CACHE_DRIVER: redis
+  REDIS_HOST: redis
+  REDIS_PORT: "6379"
+  REDIS_DB: "0"
+  REDIS_CACHE_DB: "1"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: infra-task-secret
+type: Opaque
+data:
+  REDIS_PASSWORD: strong_password
+  APP_KEY: base64:MgP5YBWHksmoLmRWBmSr183GxnOjESZ9voXUojpLxRw=
