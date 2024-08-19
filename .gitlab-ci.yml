@@ -29,11 +29,11 @@ build docker image:
   before_script:
     - cp .env.example .env
     - sed -i "s/APP_KEY=.*/APP_KEY=$APP_KEY/" .env
-    - sed -i "s/APP_KEY=.*/APP_KEY=$APP_KEY/" .env
-    - sed -i "s/APP_KEY=.*/APP_KEY=$APP_KEY/" .env
-    - sed -i "s/APP_KEY=.*/APP_KEY=$APP_KEY/" .env
-    - sed -i "s/APP_KEY=.*/APP_KEY=$APP_KEY/" .env
-    - sed -i "s/APP_KEY=.*/APP_KEY=$APP_KEY/" .env
+    - sed -i "s/CACHE_DRIVER=.*/CACHE_DRIVER=$CACHE_DRIVER/" .env
+    - sed -i "s/REDIS_CLIENT=.*/REDIS_CLIENT=$REDIS_CLIENT/" .env
+    - sed -i "s/REDIS_HOST=.*/REDIS_HOST=$REDIS_HOST/" .env
+    - sed -i "s/REDIS_PASSWORD=.*/REDIS_PASSWORD=$REDIS_PASSWORD/" .env
+    - sed -i "s/REDIS_PORT=.*/REDIS_PORT=$REDIS_PORT/" .env
   script:
     - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER $CI_REGISTRY --password-stdin
     - docker build -t $CI_REGISTRY_IMAGE -t $CI_REGISTRY_IMAGE:$APP_VERSION -t $DOCKER_REGISTRY_IMAGE -t $DOCKER_REGISTRY_IMAGE:$APP_VERSION .
