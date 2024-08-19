@@ -7,18 +7,7 @@ stages:
 variables:
   APP_VERSION: $CI_PIPELINE_IID
 
-versioning website:
-  image: alpine
-  stage: build
-  script:
-    - cat resources/views/welcome.blade.php
-    - "sed -i \"s/Infra Task/Infra Task Version: $APP_VERSION/g\" resources/views/welcome.blade.php"
-    - cat resources/views/welcome.blade.php
-  artifacts:
-    paths:
-      - resources/
-
-.build docker image:
+build docker image:
   stage: package
   image: docker:27.0.3
   services:
@@ -31,14 +20,12 @@ versioning website:
     - echo $DOCKER_REGISTRY_PASSWORD | docker login -u $DOCKER_REGISTRY_USERNAME --password-stdin
     - docker push --all-tags $DOCKER_REGISTRY_IMAGE
 
-.test docker image:
+test docker image:
   image: curlimages/curl
   stage: test
   services:
     - name: $CI_REGISTRY_IMAGE:$APP_VERSION
       alias: website
   script:
-    - echo $APP_VERSION
-    - curl http://website:8000
-    - curl http://website:8000 | grep $APP_VERSION
+    - curl http://website:8000 | grep "Infra Task"
 
