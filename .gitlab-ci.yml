@@ -19,7 +19,6 @@ unit test:
   script:
     - cp .env.example .env
     - sed -i "s/APP_KEY=.*/APP_KEY=$APP_KEY/" .env
-    - php artisan key:generate
     - php artisan test
 
 build docker image:
