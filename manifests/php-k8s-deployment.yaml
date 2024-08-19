@@ -37,9 +37,12 @@ spec:
       automountServiceAccountToken: false
       containers:
         - name: app
-          envFrom:
-            - configMapRef:
-                name: infra-task-config
+          # envFrom:
+          #   - configMapRef:
+          #       name: infra-task-config
+          volumeMounts:
+            - name: env-file
+              mountPath: .env
           image: miladroid/infra-task:34
           imagePullPolicy: Always
 #          lifecycle:
@@ -75,3 +78,10 @@ spec:
               cpu: 100m
               memory: 200M
               ephemeral-storage: "1Gi"
+          volumes:
+            - name: env-file
+              configMap:
+                name: infra-task-config
+                items:
+                  - key: env
+                    path: .env
