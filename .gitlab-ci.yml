@@ -7,7 +7,7 @@ stages:
 variables:
   APP_VERSION: $CI_PIPELINE_IID
 
-versioning website:
+.versioning website:
   image: alpine
   stage: build
   script:
@@ -23,7 +23,7 @@ build docker image:
     - docker:27.0.3-dind
   script:
     - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER $CI_REGISTRY --password-stdin
-    - docker build -t $CI_REGISTRY_IMAGE -t $CI_REGISTRY_IMAGE:$APP_VERSION -t $DOCKER_REGISTRY_USERNAME/infra-task -t $DOCKER_REGISTRY_USERNAME/infra-task:$APP_VERSION .
+    - docker build -t $CI_REGISTRY_IMAGE -t $CI_REGISTRY_IMAGE:$APP_VERSION -t $DOCKER_REGISTRY_IMAGE -t $DOCKER_REGISTRY_IMAGE:$APP_VERSION .
     - docker image ls
     - docker push --all-tags $CI_REGISTRY_IMAGE
     - echo $DOCKER_REGISTRY_PASSWORD | docker login -u $DOCKER_REGISTRY_USERNAME --password-stdin
@@ -36,5 +36,6 @@ test docker image:
     - name: $CI_REGISTRY_IMAGE:$APP_VERSION
       alias: website
   script:
+    - echo $APP_VERSION
     - curl http://website:8000 | grep $APP_VERSION
 
