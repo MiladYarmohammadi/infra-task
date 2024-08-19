@@ -47,7 +47,7 @@ build docker image:
 deploy to kubernetes:
   stage: production
   image: alpine
-  when: manual
+  # when: manual
   variables:
     APP_NAME: infra-task
   before_script:
@@ -55,8 +55,8 @@ deploy to kubernetes:
     - mkdir -p ~/.ssh
     - eval $(ssh-agent -s)
     - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
+    - chmod 600 $SSH_PRIVATE_KEY
     - ssh-add $SSH_PRIVATE_KEY
-    # - ssh-add <(echo "$SSH_PRIVATE_KEY")
   script: 
     - ssh $PRODUCTION_SERVER echo $DOCKER_REGISTRY_PASSWORD | docker login -u $DOCKER_REGISTRY_USERNAME --password-stdin
     - ssh $PRODUCTION_SERVER microk8s kubectl set image deployment.apps $APP_NAME $APP_NAME=$DOCKER_REGISTRY_IMAGE:$APP_VERSION
