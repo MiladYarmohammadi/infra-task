@@ -12,10 +12,9 @@ versioning website:
   stage: build
   script:
     - "sed -i \"s\/Infra Task\/Infra Task Version: $APP_VERSION\/g\" resources/views/welcome.blade.php"
-
   artifacts:
     paths:
-      - build
+      - resources/views/welcome.blade.php
 
 build docker image:
   stage: package
