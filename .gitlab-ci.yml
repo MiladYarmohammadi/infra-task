@@ -1,4 +1,5 @@
 stages:
+  - unit test
   - build
   - package
   - test
@@ -6,6 +7,17 @@ stages:
 
 variables:
   APP_VERSION: $CI_PIPELINE_IID
+
+unit test:
+  image: php:8.2-alpine
+  stage: unit test
+  before_script:
+    - apk --no-cache add autoconf build-base curl
+    - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+    - pecl install redis && docker-php-ext-enable redis
+    - composer install
+  script:
+    - php artisan test
 
 build docker image:
   stage: package
