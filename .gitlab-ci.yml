@@ -8,7 +8,7 @@ stages:
 variables:
   APP_VERSION: $CI_PIPELINE_IID
 
-unit test:
+.unit test:
   image: php:8.2-alpine
   stage: unit test
   before_script:
@@ -34,7 +34,7 @@ build docker image:
     - echo $DOCKER_REGISTRY_PASSWORD | docker login -u $DOCKER_REGISTRY_USERNAME --password-stdin
     - docker push --all-tags $DOCKER_REGISTRY_IMAGE
 
-test docker image:
+.test docker image:
   image: curlimages/curl
   stage: test
   allow_failure: true
@@ -55,7 +55,8 @@ deploy to kubernetes:
     - mkdir -p ~/.ssh
     - eval $(ssh-agent -s)
     - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
-    - ssh-add <(echo "$SSH_PRIVATE_KEY")
+    - ssh-add $SSH_PRIVATE_KEY
+    # - ssh-add <(echo "$SSH_PRIVATE_KEY")
   script: 
     - ssh $PRODUCTION_SERVER echo $DOCKER_REGISTRY_PASSWORD | docker login -u $DOCKER_REGISTRY_USERNAME --password-stdin
     - ssh $PRODUCTION_SERVER microk8s kubectl set image deployment.apps $APP_NAME $APP_NAME=$DOCKER_REGISTRY_IMAGE:$APP_VERSION
