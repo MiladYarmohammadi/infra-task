@@ -11,7 +11,7 @@ variables:
   image: alpine
   stage: build
   script:
-    - "sed -i \"s\/Infra Task\/Infra Task Version: $APP_VERSION\/g\" resources/views/welcome.blade.php"
+    - "sed -i \"s/Infra Task/Infra Task Version: $APP_VERSION/g\" resources/views/welcome.blade.php"
   artifacts:
     paths:
       - resources/
@@ -37,5 +37,6 @@ test docker image:
       alias: website
   script:
     - echo $APP_VERSION
+    - curl http://website:8000
     - curl http://website:8000 | grep $APP_VERSION
 
