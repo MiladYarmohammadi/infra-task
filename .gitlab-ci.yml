@@ -46,7 +46,7 @@ test docker image:
 deploy to kubernetes:
   stage: production
   image: alpine
-  manual_confirmation: yes
+  when: manual
   variables:
     APP_NAME: infra-task
   before_script:
