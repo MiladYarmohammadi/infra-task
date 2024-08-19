@@ -24,10 +24,11 @@ build docker image:
     - docker:27.0.3-dind
   script:
     - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER $CI_REGISTRY --password-stdin
-    - docker build -t $CI_REGISTRY_IMAGE -t $CI_REGISTRY_IMAGE:$APP_VERSION -t miladroid/infra-task -t miladroid/infra-task:$APP_VERSION .
+    - docker build -t $CI_REGISTRY_IMAGE -t $CI_REGISTRY_IMAGE:$APP_VERSION -t $DOCKER_REGISTRY_USERNAME/infra-task -t $DOCKER_REGISTRY_USERNAME/infra-task:$APP_VERSION .
     - docker image ls
     - docker push --all-tags $CI_REGISTRY_IMAGE
-    - docker push --all-tags miladroid/infra-task
+    - echo $DOCKER_REGISTRY_PASSWORD | docker login -u $DOCKER_REGISTRY_USERNAME --password-stdin
+    - docker push --all-tags $DOCKER_REGISTRY_IMAGE
 
 test docker image:
   image: curlimages/curl
