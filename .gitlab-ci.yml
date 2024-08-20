@@ -15,7 +15,7 @@ unit test:
     - apk --no-cache add autoconf build-base curl
     - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
     - pecl install redis && docker-php-ext-enable redis
-    - composer install
+    - composer install --no-ansi --no-dev --no-interaction --no-progress --no-scripts --optimize-autoloader
   script:
     - cp .env.example .env
     - sed -i "s/APP_KEY=.*/APP_KEY=$APP_KEY/" .env
@@ -65,7 +65,7 @@ deploy to kubernetes:
     - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
     - chmod 600 $SSH_PRIVATE_KEY
     - ssh-add $SSH_PRIVATE_KEY
-  script: 
+  script:
     - ssh $PRODUCTION_SERVER docker login -u $DOCKER_REGISTRY_USERNAME -p $DOCKER_REGISTRY_PASSWORD
     - ssh $PRODUCTION_SERVER microk8s kubectl set image deployment.apps $APP_NAME *=$DOCKER_REGISTRY_IMAGE:$APP_VERSION
     - ssh $PRODUCTION_SERVER microk8s kubectl get all -A
