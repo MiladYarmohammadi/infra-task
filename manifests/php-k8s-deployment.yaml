@@ -22,18 +22,36 @@ spec:
       labels:
         app: infra-task
     spec:
-      affinity:
-        podAntiAffinity:
-          preferredDuringSchedulingIgnoredDuringExecution:
-            - podAffinityTerm:
-                labelSelector:
-                  matchExpressions:
-                    - key: app
-                      operator: In
-                      values:
-                        - infra-task
-                topologyKey: kubernetes.io/hostname
-              weight: 100
+      topologySpreadConstraint:
+        - maxSkew: 1
+          topologyKey: zone
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              foo: bar
+        - maxSkew: 1
+          topologyKey: node
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              foo: bar
+#        - maxSkew: 1
+#          topologyKey: "kubernetes.io/hostname"
+#          whenUnsatisfiable: DoNotSchedule
+#          labelSelector:
+#            matchLabels:
+#              app: infra-task
+  #        podAntiAffinity:
+  #          preferredDuringSchedulingIgnoredDuringExecution:
+  #            - podAffinityTerm:
+  #                labelSelector:
+  #                  matchExpressions:
+  #                    - key: app
+  #                      operator: In
+  #                      values:
+  #                        - infra-task
+  #                topologyKey: kubernetes.io/hostname
+  #              weight: 100
       automountServiceAccountToken: false
       containers:
         - name: app
@@ -43,7 +61,7 @@ spec:
           volumeMounts:
             - name: env-file
               mountPath: .env
-          image: miladroid/infra-task:latest
+          image: miladroid/infra-task:prod
           imagePullPolicy: Always
 #          lifecycle:
 #            postStart:
