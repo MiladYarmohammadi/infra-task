@@ -70,5 +70,5 @@ deploy to kubernetes:
     - echo $PRODUCTION_SERVER
     - echo $FORMER_IMAGE_NAME
     - scp docker-compose.yml.example $PRODUCTION_SERVER:/tmp/docker-compose.yml
-    - ssh $PRODUCTION_SERVER "cd /tmp && docker compose pull && docker compose up -d
+    - ssh $PRODUCTION_SERVER "cd /tmp && docker compose pull && docker compose up -d"
 
