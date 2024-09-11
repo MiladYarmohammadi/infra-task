@@ -10,7 +10,7 @@ variables:
 
 
 .prepare:
-  script:
+  before_script:
     - cp .env.example .env
     - sed -i "s/APP_KEY=.*/APP_KEY=$APP_KEY/" .env
     - sed -i "s/REDIS_HOST=.*/REDIS_HOST=$REDIS_HOST/" .env
