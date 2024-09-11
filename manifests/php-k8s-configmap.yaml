@@ -2,10 +2,10 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: infra-task-config
+  name: bitpin-task-config
 data:
   env: |
-    APP_NAME=Infra-Task
+    APP_NAME=bitpin-task
     APP_ENV=local
     APP_KEY=base64:MgP5YBWHksmoLmRWBmSr183GxnOjESZ9voXUojpLxRw=
     APP_DEBUG=true
@@ -18,7 +18,7 @@ data:
     DB_CONNECTION=mysql
     DB_HOST=127.0.0.1
     DB_PORT=3306
-    DB_DATABASE=infra_task
+    DB_DATABASE=bitpin_task
     DB_USERNAME=root
     DB_PASSWORD=
 
@@ -68,7 +68,7 @@ data:
 apiVersion: v1
 kind: Secret
 metadata:
-  name: infra-task-secret
+  name: bitpin-task-secret
 type: Opaque
 data:
   REDIS_PASSWORD: c3Ryb25nX3Bhc3N3b3JkCg==

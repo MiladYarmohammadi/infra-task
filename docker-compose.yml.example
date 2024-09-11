@@ -1,0 +1,70 @@
+version: "3"
+
+services:
+  redis:
+    image: redis:7.4.0-alpine
+    command:
+      - bash
+      - -c
+      - redis-server --appendonly yes --maxmemory $$(( $$( cat /sys/fs/cgroup/memory/memory.limit_in_bytes 2>/dev/null || cat /sys/fs/cgroup/memory.max ) - 100000000)) --maxmemory-policy volatile-lru
+    healthcheck:
+      test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
+    networks:
+      - db_net
+    volumes:
+        - redis_data:/data
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+  app:
+    image: miladroid/bitpin-task:latest
+    restart: unless-stopped
+    ports:
+      - "8000:80"
+    environment:
+      BITPIN_API_ENV: PRODUCTION
+      BITPIN_API_DEBUG: 0
+      BITPIN_API_DATABASE_URI: None
+      BITPIN_API_DEFAULT_PROJECT_STATUS: 0
+    networks:
+      - db_net
+      - public
+
+#  db:
+#    platform: linux/x86_64
+#    image: mysql:5.7
+#    volumes:
+#      - db_data:/var/lib/mysql
+#    restart: always
+#    ports:
+#      - "3306:3306"
+#    environment:
+#      MYSQL_ROOT_PASSWORD: bitpin
+#      MYSQL_DATABASE: bitpin
+#      MYSQL_PASSWORD: bitpin
+#    networks:
+#      - db_net
+
+#  phpmyadmin:
+#    depends_on:
+#      - db
+#    image: phpmyadmin
+#    restart: always
+#    ports:
+#      - "8090:80"
+#    environment:
+#      PMA_HOST: db
+#      MYSQL_ROOT_PASSWORD: bitpin
+#    networks:
+#      - db_net
+
+networks:
+  public:
+    external: true
+  db_net:
+    internal: true
+
+volumes:
+  redis_data:

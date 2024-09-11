@@ -1,4 +1,4 @@
-# infra-task
+# bitpin-task
 
 ## Requirements
 Install php 8.2, composer and redis
@@ -18,17 +18,25 @@ php artisan test
 ```
 
 
-## Run project on Kubernetes
-### Build container image
+## Build container image
 Build project with following command or just push project to GitLab
 ```bash
-docker build -t infra-task:latest -t miladroid/infra-task:latest .
+docker build -t bitpin-task:latest -t miladroid/bitpin-task:latest .
 ```
 In case you already have the image on DockerHub, use the following command to pull the image
 ```bash
-docker pull miladroid/infra-task:latest
+docker pull miladroid/bitpin-task:latest
 ```
-### infra-task project
+
+
+## Run project on Docker by Docker Compose
+Use ```docker-compose.yml``` file located in the root of the project to deploy application and its dependencies.
+```bash
+docker compose up -d
+```
+
+## Run project on Kubernetes
+### bitpin-task project
 manifest files are located in the **manifests** folder
 ```bash
 cd manifests && kubectl apply -f .

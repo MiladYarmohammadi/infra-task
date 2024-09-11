@@ -1,12 +1,14 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>Infra Task</title>
+        <title>BitPin Task</title>
     </head>
     <body >
-        <h1>Infra Task</h1>
+        <h1>BitPin Task</h1>
+
+        <h2>Project Version: {{ BITPIN_VERSION }}</h2>
 
         <h2>Project Details</h2>
         <h3>This project has 2 routes:</h3>

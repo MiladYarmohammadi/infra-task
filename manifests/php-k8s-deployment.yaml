@@ -3,15 +3,15 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: infra-task
-  name: infra-task
+    app: bitpin-task
+  name: bitpin-task
 spec:
   minReadySeconds: 5
   replicas: 2
   revisionHistoryLimit: 1
   selector:
     matchLabels:
-      app: infra-task
+      app: bitpin-task
   strategy:
     rollingUpdate:
       maxSurge: 1
@@ -20,7 +20,7 @@ spec:
   template:
     metadata:
       labels:
-        app: infra-task
+        app: bitpin-task
     spec:
       topologySpreadConstraint:
         - maxSkew: 1
@@ -40,7 +40,7 @@ spec:
 #          whenUnsatisfiable: DoNotSchedule
 #          labelSelector:
 #            matchLabels:
-#              app: infra-task
+#              app: bitpin-task
   #        podAntiAffinity:
   #          preferredDuringSchedulingIgnoredDuringExecution:
   #            - podAffinityTerm:
@@ -49,7 +49,7 @@ spec:
   #                    - key: app
   #                      operator: In
   #                      values:
-  #                        - infra-task
+  #                        - bitpin-task
   #                topologyKey: kubernetes.io/hostname
   #              weight: 100
       automountServiceAccountToken: false
@@ -57,11 +57,11 @@ spec:
         - name: app
           # envFrom:
           #   - configMapRef:
-          #       name: infra-task-config
+          #       name: bitpin-task-config
           volumeMounts:
             - name: env-file
               mountPath: .env
-          image: miladroid/infra-task:prod
+          image: miladroid/bitpin-task:prod
           imagePullPolicy: Always
 #          lifecycle:
 #            postStart:
@@ -99,7 +99,7 @@ spec:
       volumes:
         - name: env-file
           configMap:
-            name: infra-task-config
+            name: bitpin-task-config
             items:
               - key: env
                 path: .env

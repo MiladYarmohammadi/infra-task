@@ -6,8 +6,8 @@ metadata:
     nginx.ingress.kubernetes.io/from-to-www-redirect: "true"
     nginx.ingress.kubernetes.io/proxy-body-size: 100m
   labels:
-    app: infra-task
-  name: infra-task
+    app: bitpin-task
+  name: bitpin-task
 spec:
   rules:
     - host: task.seroadmap.ir
@@ -17,6 +17,6 @@ spec:
           pathType: Prefix
           backend:
             service:
-              name: infra-task
+              name: bitpin-task
               port:
                 number: 8000
