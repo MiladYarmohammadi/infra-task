@@ -18,6 +18,10 @@ WORKDIR /app
 
 COPY --from=builder /app /app
 
+RUN rm -rf vendor/**/test* vendor/**/Tests* vendor/**/tests*
+
 EXPOSE 8000
+
+USER bitpin
 
 CMD php artisan serve --host=0.0.0.0 --port=8000
