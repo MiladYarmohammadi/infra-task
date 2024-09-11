@@ -22,7 +22,7 @@ RUN rm -rf vendor/**/test* vendor/**/Tests* vendor/**/tests*
 
 EXPOSE 8000
 
-RUN useradd appuser
+RUN adduser -D -H appuser
 
 USER appuser
 
