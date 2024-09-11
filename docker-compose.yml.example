@@ -22,7 +22,7 @@ services:
     image: miladroid/bitpin-task:latest
     restart: unless-stopped
     ports:
-      - "8000:80"
+      - "8000:8000"
     environment:
       BITPIN_API_ENV: PRODUCTION
       BITPIN_API_DEBUG: 0
