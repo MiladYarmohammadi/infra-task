@@ -62,7 +62,6 @@ services:
 
 networks:
   public:
-    external: true
   db_net:
     internal: true
 
