@@ -8,21 +8,25 @@ variables:
   APP_VERSION: $CI_PIPELINE_IID
   FORMER_IMAGE_NAME: 0
 
+
+.prepare:
+  script:
+    - cp .env.example .env
+    - sed -i "s/APP_KEY=.*/APP_KEY=$APP_KEY/" .env
+    - sed -i "s/REDIS_HOST=.*/REDIS_HOST=$REDIS_HOST/" .env
+    - sed -i "s/BITPIN_VERSION/$APP_VERSION/" resources/views/welcome.blade.php
+
 unit test:
   image: php:8.2-alpine
   stage: unit test
+  extends:
+    - .prepare
   before_script:
     - apk --no-cache add autoconf build-base curl
     - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
     - pecl install redis && docker-php-ext-enable redis
     - composer install
   script:
-    - cp .env.example .env
-    - sed -i "s/APP_KEY=.*/APP_KEY=$APP_KEY/" .env
-    - sed -i "s/REDIS_HOST=.*/REDIS_HOST=$REDIS_HOST/" .env
-    - echo $APP_VERSION
-    - sed -i "s/BITPIN_VERSION/$APP_VERSION/" resources/views/welcome.blade.php
-    - cat resources/views/welcome.blade.php
     - php artisan test
 
 build docker image:
@@ -30,6 +34,8 @@ build docker image:
   image: docker:27.0.3
   services:
     - docker:27.0.3-dind
+  extends:
+    - .prepare
   script:
     - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER $CI_REGISTRY --password-stdin
     - docker build -t $CI_REGISTRY_IMAGE -t $CI_REGISTRY_IMAGE:$APP_VERSION -t $DOCKER_REGISTRY_IMAGE -t $DOCKER_REGISTRY_IMAGE:$APP_VERSION .
