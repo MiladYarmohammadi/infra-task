@@ -21,6 +21,7 @@ unit test:
     - sed -i "s/APP_KEY=.*/APP_KEY=$APP_KEY/" .env
     - sed -i "s/REDIS_HOST=.*/REDIS_HOST=$REDIS_HOST/" .env
     - sed -i "s/BITPIN_VERSION/$APP_VERSION/" resources/views/welcome.blade.php
+    - cat resources/views/welcome.blade.php
     - php artisan test
 
 build docker image:
