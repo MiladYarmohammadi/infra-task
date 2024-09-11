@@ -8,7 +8,7 @@
     <body >
         <h1>BitPin Task</h1>
 
-        <h2>Project Version: {{ BITPIN_VERSION }}</h2>
+        <h2>Project Version: BITPIN_VERSION</h2>
 
         <h2>Project Details</h2>
         <h3>This project has 2 routes:</h3>
