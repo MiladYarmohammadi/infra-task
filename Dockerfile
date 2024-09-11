@@ -22,6 +22,8 @@ RUN rm -rf vendor/**/test* vendor/**/Tests* vendor/**/tests*
 
 EXPOSE 8000
 
-USER bitpin
+RUN useradd appuser
+
+USER appuser
 
 CMD php artisan serve --host=0.0.0.0 --port=8000
