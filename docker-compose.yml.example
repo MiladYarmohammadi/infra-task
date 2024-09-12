@@ -3,6 +3,7 @@ version: "3"
 services:
   redis:
     image: redis:7.4.0
+    container_name: redis
     command:
       - bash
       - -c
@@ -21,13 +22,9 @@ services:
   app:
     image: miladroid/bitpin-task:latest
     restart: unless-stopped
+    container_name: app
     ports:
       - "8000:8000"
-    environment:
-      BITPIN_API_ENV: PRODUCTION
-      BITPIN_API_DEBUG: 0
-      BITPIN_API_DATABASE_URI: None
-      BITPIN_API_DEFAULT_PROJECT_STATUS: 0
     networks:
       - db_net
       - public

@@ -3,13 +3,24 @@ stages:
   - package
   - test
   - production
+  - post production
 
 variables:
   APP_VERSION: $CI_PIPELINE_IID
-  FORMER_IMAGE_NAME: 0
+  FORMER_IMAGE_VERSION: 0
 
 
-.prepare:
+.prepare ssh:
+  before_script:
+    - apk add openssh-client
+    - mkdir -p ~/.ssh
+    - eval $(ssh-agent -s)
+    - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
+    - chmod 600 $SSH_PRIVATE_KEY
+    - ssh-add $SSH_PRIVATE_KEY
+
+
+.prepare app:
   before_script:
     - cp .env.example .env
     - sed -i "s/APP_KEY=.*/APP_KEY=$APP_KEY/" .env
@@ -20,7 +31,7 @@ unit test:
   image: php:8.2-alpine
   stage: unit test
   extends:
-    - .prepare
+    - .prepare app
   before_script:
     - apk --no-cache add autoconf build-base curl
     - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
@@ -35,7 +46,7 @@ build docker image:
   services:
     - docker:27.0.3-dind
   extends:
-    - .prepare
+    - .prepare app
   script:
     - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER $CI_REGISTRY --password-stdin
     - docker build -t $CI_REGISTRY_IMAGE -t $CI_REGISTRY_IMAGE:$APP_VERSION -t $DOCKER_REGISTRY_IMAGE -t $DOCKER_REGISTRY_IMAGE:$APP_VERSION .
@@ -47,14 +58,14 @@ build docker image:
 test docker image:
   image: curlimages/curl
   stage: test
-  allow_failure: true
+#  allow_failure: true
   services:
     - name: $CI_REGISTRY_IMAGE:$APP_VERSION
       alias: website
   script:
-    - curl http://website:8000 | grep "BitPin Task"
+    - curl http://website:8000 | grep $APP_VERSION
 
-deploy to kubernetes:
+deploy to production:
   stage: production
   image: alpine
 #  when: manual
@@ -62,20 +73,29 @@ deploy to kubernetes:
 #    - if: '$CI_COMMIT_TAG'
   variables:
     APP_NAME: infra-task-app-1
-  before_script:
-    - apk add openssh-client
-    - mkdir -p ~/.ssh
-    - eval $(ssh-agent -s)
-    - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
-    - chmod 600 $SSH_PRIVATE_KEY
-    - ssh-add $SSH_PRIVATE_KEY
+  extends:
+    - .prepare ssh
   script:
     - ssh $PRODUCTION_SERVER "echo $DOCKER_REGISTRY_PASSWORD | docker login -u $DOCKER_REGISTRY_USERNAME --password-stdin"
-    - FORMER_IMAGE_NAME=$(docker inspect --format='{{.Config.Image}}' "$APP_NAME " 2>/dev/null || echo Not Found!)
+    - FORMER_IMAGE_NAME=$(docker inspect --format='{{.Config.Image}}' "$APP_NAME" 2>/dev/null || echo Not Found!)
+    - FORMER_IMAGE_VERSION=$(echo $FORMER_IMAGE_NAME | awk -F: '{print $2}')
+    - echo "$VERSION"
     #    - ssh $PRODUCTION_SERVER microk8s kubectl set image deployment.apps $APP_NAME *=$DOCKER_REGISTRY_IMAGE:$APP_VERSION  # Kubernetes Version
     - echo $PRODUCTION_SERVER
     - echo $FORMER_IMAGE_NAME
     - sed -i "s/latest/$APP_VERSION/" docker-compose.yml.example
-    - scp docker-compose.yml.example $PRODUCTION_SERVER:/tmp/docker-compose.yml
-    - ssh $PRODUCTION_SERVER "cd /tmp && docker compose pull && docker compose up -d"
+    - scp docker-compose.yml.example $PRODUCTION_USER@$PRODUCTION_SERVER:/tmp/docker-compose.yml
+    - ssh $PRODUCTION_USER@$PRODUCTION_SERVER "cd /tmp && docker compose pull && docker compose up -d"
+
+
+test production server:
+  image: curlimages/curl
+  stage: post production
+  extends:
+    - .prepare ssh
+  script:
+    - curl http://$PRODUCTION_SERVER:8000 | grep $APP_VERSION
+    - if [[ $? -ne 0 ]]; then sed -i "s/$APP_VERSION/$FORMER_IMAGE_VERSION/" docker-compose.yml.example
+    - scp docker-compose.yml.example $PRODUCTION_USER@$PRODUCTION_SERVER:/tmp/docker-compose.yml
+    - ssh $PRODUCTION_USER@$PRODUCTION_SERVER "cd /tmp && docker compose pull && docker compose up -d"
 
