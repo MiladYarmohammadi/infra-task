@@ -64,7 +64,7 @@ test docker image:
     - name: $CI_REGISTRY_IMAGE:$APP_VERSION
       alias: website
   script:
-    - curl http://website:8000 | grep Version | grep $APP_VERSION
+    - curl http://website:8000 | grep -q Version | grep -q $APP_VERSION
 
 deploy to production:
   stage: production
@@ -100,7 +100,7 @@ test production server:
   script:
     - CONTENT=$(curl -s "http://$PRODUCTION_SERVER:8000")
     - |
-      if echo "$CONTENT" | grep Version | grep $APP_VERSION; then
+      if [ (echo "$CONTENT" | grep -q Version | grep -q $APP_VERSION)  ]; then
         echo "Success"
         exit 0
       else:
@@ -113,7 +113,7 @@ test production server:
           scp docker-compose.yml.example $PRODUCTION_USER@$PRODUCTION_SERVER:/tmp/docker-compose.yml
           ssh $PRODUCTION_USER@$PRODUCTION_SERVER "cd /tmp && docker compose pull && docker compose up -d"
           sleep 10
-          curl http://$PRODUCTION_SERVER:8000 | grep Version | grep $FORMER_IMAGE_VERSION
+          curl http://$PRODUCTION_SERVER:8000 | grep -q Version | grep -q $FORMER_IMAGE_VERSION
           if [[ $? -ne 0 ]]; then
             echo "Rollback failed!"
             exit 1
