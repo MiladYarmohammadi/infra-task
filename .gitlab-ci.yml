@@ -103,7 +103,7 @@ test production server:
     - .prepare ssh
   script:
     - source $VARIABLES_FILE
-    - echo FORMER_IMAGE_VERSION:: $FORMER_IMAGE_VERSION
+    - echo FORMER_IMAGE_VERSION $FORMER_IMAGE_VERSION
     - CONTENT=$(curl -s "http://$PRODUCTION_SERVER:8000")
     - |
       if echo "$CONTENT" | grep -q Version | grep -q $APP_VERSION; then
