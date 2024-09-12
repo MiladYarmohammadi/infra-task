@@ -115,7 +115,7 @@ test production server:
           echo "Failed and cannot rollback!"
           exit 1
         else
-          sed -i "s/$APP_VERSION/$FORMER_IMAGE_VERSION/" docker-compose.yml.example
+          sed -i "s/latest/$FORMER_IMAGE_VERSION/" docker-compose.yml.example
           scp docker-compose.yml.example $PRODUCTION_USER@$PRODUCTION_SERVER:/tmp/docker-compose.yml
           ssh $PRODUCTION_USER@$PRODUCTION_SERVER "cd /tmp && docker compose pull && docker compose up -d"
           sleep 10
