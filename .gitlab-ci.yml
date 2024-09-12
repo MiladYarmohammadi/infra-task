@@ -124,7 +124,7 @@ test production server:
     - set -x
     - source $VARIABLES_FILE
     - echo FORMER_IMAGE_VERSION $FORMER_IMAGE_VERSION
-    - CONTENT=$(curl -s "http://$PRODUCTION_SERVER:8000")
+    - CONTENT=$(curl -s "http://$PRODUCTION_SERVER:8001")
     - echo $CONTENT
     - |
       if echo "$CONTENT" | grep -q "Project Version: $APP_VERSION"; then
@@ -145,7 +145,7 @@ test production server:
           scp docker-compose.yml.example $PRODUCTION_USER@$PRODUCTION_SERVER:/tmp/docker-compose.yml
           ssh $PRODUCTION_USER@$PRODUCTION_SERVER "cd /tmp && docker compose pull && docker compose up -d"
           sleep 10
-          CONTENT=$(curl -s "http://$PRODUCTION_SERVER:8000")
+          CONTENT=$(curl -s "http://$PRODUCTION_SERVER:8001")
           if echo "$CONTENT" | grep -q "Project Version: $FORMER_IMAGE_VERSION"; then
             echo "Rollback was Successful"
             echo "Updating Nginx config to 'allow' traffic on green node"
