@@ -27,7 +27,7 @@ variables:
     - sed -i "s/APP_KEY=.*/APP_KEY=$APP_KEY/" .env
     - sed -i "s/REDIS_HOST=.*/REDIS_HOST=$REDIS_HOST/" .env
     - sed -i "s/BITPIN_VERSION/$APP_VERSION/" resources/views/welcome.blade.php
-#    - rm .env  # intentional mistake
+    - rm .env  # intentional mistake
 
 unit test:
   image: php:8.2-alpine
@@ -102,9 +102,11 @@ test production server:
   extends:
     - .prepare ssh
   script:
+    - set -x
     - source $VARIABLES_FILE
     - echo FORMER_IMAGE_VERSION $FORMER_IMAGE_VERSION
     - CONTENT=$(curl -s "http://$PRODUCTION_SERVER:8000")
+    - echo $CONTENT
     - |
       if echo "$CONTENT" | grep -q Version | grep -q $APP_VERSION; then
         echo "Success"
