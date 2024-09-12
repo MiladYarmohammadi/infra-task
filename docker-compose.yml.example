@@ -1,30 +1,45 @@
 version: "3"
 
 services:
-  redis:
-    image: redis:7.4.0
-    container_name: redis
-    command:
-      - bash
-      - -c
-      - redis-server --appendonly yes --maxmemory $$(( $$( cat /sys/fs/cgroup/memory/memory.limit_in_bytes 2>/dev/null || cat /sys/fs/cgroup/memory.max ) - 100000000)) --maxmemory-policy volatile-lru
-    healthcheck:
-      test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
-    networks:
-      - db_net
-    volumes:
-        - redis_data:/data
-    deploy:
-      resources:
-        limits:
-          memory: 512M
+#  redis:
+#    image: redis:7.4.0
+#    container_name: redis
+#    command:
+#      - bash
+#      - -c
+#      - redis-server --appendonly yes --maxmemory $$(( $$( cat /sys/fs/cgroup/memory/memory.limit_in_bytes 2>/dev/null || cat /sys/fs/cgroup/memory.max ) - 100000000)) --maxmemory-policy volatile-lru
+#    healthcheck:
+#      test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
+#    networks:
+#      - db_net
+#    volumes:
+#        - redis_data:/data
+#    deploy:
+#      resources:
+#        limits:
+#          memory: 512M
 
-  app:
-    image: miladroid/bitpin-task:latest
+  app_blue:  # old version (running version)
+    image: miladroid/bitpin-task:blue_version
     restart: unless-stopped
-    container_name: app
+    container_name: app_blue
     ports:
       - "8000:8000"
+    networks:
+      - db_net
+      - public
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:8000"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  app_green:  # new version
+    image: miladroid/bitpin-task:green_version
+    restart: unless-stopped
+    container_name: app_green
+    ports:
+      - "8001:8000"
     networks:
       - db_net
       - public

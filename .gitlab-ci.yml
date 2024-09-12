@@ -5,10 +5,11 @@ stages:
   - production
   - post production
 
+
 variables:
   APP_VERSION: $CI_PIPELINE_IID
   VARIABLES_FILE: ./variables.txt
-  APP_NAME: app
+  APP_NAME: app_blue
 
 
 .prepare ssh:
@@ -29,6 +30,7 @@ variables:
     - sed -i "s/BITPIN_VERSION/$APP_VERSION/" resources/views/welcome.blade.php
 #    - rm .env  # intentional mistake
 
+
 unit test:
   image: php:8.2-alpine
   stage: unit test
@@ -41,6 +43,7 @@ unit test:
     - composer install
   script:
     - php artisan test
+
 
 build docker image:
   stage: package
@@ -56,6 +59,7 @@ build docker image:
     - docker push --all-tags $CI_REGISTRY_IMAGE
     - echo $DOCKER_REGISTRY_PASSWORD | docker login -u $DOCKER_REGISTRY_USERNAME --password-stdin
     - docker push --all-tags $DOCKER_REGISTRY_IMAGE
+
 
 test docker image:
   image: curlimages/curl
@@ -77,6 +81,7 @@ test docker image:
         exit 1
       fi
 
+
 deploy to production:
   stage: production
   image: alpine
@@ -97,7 +102,9 @@ deploy to production:
         FORMER_IMAGE_VERSION=0
         echo "Container not found!"
       fi
-    - sed -i "s/latest/$APP_VERSION/" docker-compose.yml.example
+    - echo "Updating Nginx config to 'prevent' traffic on green node"
+    - sed -i "s/blue_version/$FORMER_IMAGE_VERSION/" docker-compose.yml.example
+    - sed -i "s/green_version/$APP_VERSION/" docker-compose.yml.example
     - scp docker-compose.yml.example $PRODUCTION_USER@$PRODUCTION_SERVER:/tmp/docker-compose.yml
     - ssh $PRODUCTION_USER@$PRODUCTION_SERVER "cd /tmp && docker compose pull && docker compose up -d"
     - echo -e "export FORMER_IMAGE_VERSION=$FORMER_IMAGE_VERSION" > $VARIABLES_FILE
@@ -122,23 +129,31 @@ test production server:
     - |
       if echo "$CONTENT" | grep -q "Project Version: $APP_VERSION"; then
         echo "Success"
+        echo "Sending Alert! Using Push Gateway to send to the Prometheus that the new version deployed successfully."
+        echo "Updating Nginx config to 'allow' traffic on green node"
         exit 0
       else
         echo FORMER_IMAGE_VERSION: $FORMER_IMAGE_VERSION
         if [ $FORMER_IMAGE_VERSION -eq 0 ]; then
           echo "Failed and cannot rollback!"
+          echo "Sending Alert! Using Push Gateway to send to the Prometheus that the new version failed and rollback process was not successful."
           exit 1
         else
-          sed -i "s/latest/$FORMER_IMAGE_VERSION/" docker-compose.yml.example
+          sed -i "s/blue_version/$FORMER_IMAGE_VERSION/" docker-compose.yml.example
+          sed -i "s/green_version/$FORMER_IMAGE_VERSION/" docker-compose.yml.example
+          echo "Updating Nginx config to get traffic on green node"
           scp docker-compose.yml.example $PRODUCTION_USER@$PRODUCTION_SERVER:/tmp/docker-compose.yml
           ssh $PRODUCTION_USER@$PRODUCTION_SERVER "cd /tmp && docker compose pull && docker compose up -d"
           sleep 10
           CONTENT=$(curl -s "http://$PRODUCTION_SERVER:8000")
           if echo "$CONTENT" | grep -q "Project Version: $FORMER_IMAGE_VERSION"; then
             echo "Rollback was Successful"
+            echo "Updating Nginx config to 'allow' traffic on green node"
+            echo "Sending Alert! Using Push Gateway to send to the Prometheus that the new version failed and rollback process was successful."
             exit 0
           else
             echo "Rollback failed!"
+            echo "Sending Alert! Using Push Gateway to send to the Prometheus that the new version failed and rollback process was not successful."
             exit 1
           fi
         fi

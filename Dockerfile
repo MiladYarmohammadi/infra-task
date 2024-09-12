@@ -2,23 +2,20 @@ FROM php:8.2-alpine AS builder
 
 WORKDIR /app
 
-RUN apk --no-cache add autoconf build-base
-
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
-
-RUN pecl install redis && docker-php-ext-enable redis
+RUN apk --no-cache add autoconf build-base && \
+    curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer && \
+    pecl install redis && docker-php-ext-enable redis
 
 COPY . .
 
-RUN composer install --no-ansi --no-dev --no-interaction --no-progress --no-scripts --optimize-autoloader
+RUN composer install --no-ansi --no-dev --no-interaction --no-progress --no-scripts --optimize-autoloader && \
+    rm -rf vendor/**/test* vendor/**/Tests* vendor/**/tests*
 
 FROM php:8.2-alpine
 
 WORKDIR /app
 
 COPY --from=builder /app /app
-
-RUN rm -rf vendor/**/test* vendor/**/Tests* vendor/**/tests*
 
 EXPOSE 8000
 
