@@ -122,7 +122,7 @@ test production server:
           ssh $PRODUCTION_USER@$PRODUCTION_SERVER "cd /tmp && docker compose pull && docker compose up -d"
           sleep 10
           curl http://$PRODUCTION_SERVER:8000 | grep -q Version | grep -q $FORMER_IMAGE_VERSION
-          if [[ $? -ne 0 ]]; then
+          if [ $? -ne 0 ]; then
             echo "Rollback failed!"
             exit 1
           else
