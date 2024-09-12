@@ -76,10 +76,11 @@ deploy to production:
   extends:
     - .prepare ssh
   script:
+    - set -x
     - ssh $PRODUCTION_SERVER "echo $DOCKER_REGISTRY_PASSWORD | docker login -u $DOCKER_REGISTRY_USERNAME --password-stdin"
     - |
-      FORMER_IMAGE_NAME=$(docker inspect --format='{{.Config.Image}}' "$APP_NAME" 2>/dev/null || echo Not Found!)
-      if [ "$FORMER_IMAGE_NAME" != "Not Found!" ]; then
+      FORMER_IMAGE_NAME=$(docker inspect --format='{{.Config.Image}}' "$APP_NAME" 2>/dev/null || echo Not Found)
+      if [ "$FORMER_IMAGE_NAME" != "Not Found" ]; then
         FORMER_IMAGE_VERSION=$(echo "$FORMER_IMAGE_NAME" | awk -F: '{print $2}')
         echo "Extracted version: $FORMER_IMAGE_VERSION"
       else
@@ -89,7 +90,7 @@ deploy to production:
     - sed -i "s/latest/$APP_VERSION/" docker-compose.yml.example
     - scp docker-compose.yml.example $PRODUCTION_USER@$PRODUCTION_SERVER:/tmp/docker-compose.yml
     - ssh $PRODUCTION_USER@$PRODUCTION_SERVER "cd /tmp && docker compose pull && docker compose up -d"
-    - echo "export FORMER_IMAGE_VERSION=$FORMER_IMAGE_VERSION" > $VARIABLES_FILE
+    - echo -e "export FORMER_IMAGE_VERSION=$FORMER_IMAGE_VERSION" > $VARIABLES_FILE
   artifacts:
     paths:
       - $VARIABLES_FILE
