@@ -65,6 +65,7 @@ test docker image:
       alias: website
   script:
     - curl http://website:8000 | grep $APP_VERSION
+    - echo hi
 
 deploy to production:
   stage: production
@@ -101,6 +102,7 @@ test production server:
     - curl http://$PRODUCTION_SERVER:8000 | grep $APP_VERSION
     - |
       if [[ $? -ne 0 ]]; then
+        echo $$FORMER_IMAGE_VERSION
         if [ $FORMER_IMAGE_VERSION -eq 0 ]; then
           echo "Failed and cannot rollback!"
           exit 1
