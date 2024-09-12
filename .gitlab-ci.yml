@@ -101,7 +101,9 @@ test production server:
   extends:
     - .prepare ssh
   script:
+#    - chmod +x $VARIABLES_FILE
     - source $VARIABLES_FILE
+    - export
     - CONTENT=$(curl -s "http://$PRODUCTION_SERVER:8000")
     - |
       if echo "$CONTENT" | grep -q Version | grep -q $APP_VERSION; then
