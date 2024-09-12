@@ -65,7 +65,9 @@ test docker image:
     - name: $CI_REGISTRY_IMAGE:$APP_VERSION
       alias: website
   script:
+    - set -x
     - CONTENT=$(curl -s "http://$PRODUCTION_SERVER:8000")
+    - echo $CONTENT
     - |
       if echo "$CONTENT" | grep -q "Project Version: $APP_VERSION"; then
         echo "Building was Successful"
