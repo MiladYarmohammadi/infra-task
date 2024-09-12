@@ -27,7 +27,7 @@ variables:
     - sed -i "s/APP_KEY=.*/APP_KEY=$APP_KEY/" .env
     - sed -i "s/REDIS_HOST=.*/REDIS_HOST=$REDIS_HOST/" .env
     - sed -i "s/BITPIN_VERSION/$APP_VERSION/" resources/views/welcome.blade.php
-    - rm .env  # intentional mistake
+#    - rm .env  # intentional mistake
 
 unit test:
   image: php:8.2-alpine
