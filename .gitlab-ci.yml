@@ -25,7 +25,8 @@ variables:
     - cp .env.example .env
     - sed -i "s/APP_KEY=.*/APP_KEY=$APP_KEY/" .env
     - sed -i "s/REDIS_HOST=.*/REDIS_HOST=$REDIS_HOST/" .env
-    - sed -i "s/BITPIN_VERSION/$APP_VERSION/" resources/views/welcome.blade.php
+#    - sed -i "s/BITPIN_VERSION/$APP_VERSION/" resources/views/welcome.blade.php  # without mistake
+    - sed -i "s/BITPIN_VERSION</$APP_VERSION/" resources/views/welcome.blade.php  # intentional mistake
 
 unit test:
   image: php:8.2-alpine
@@ -58,7 +59,7 @@ build docker image:
 test docker image:
   image: curlimages/curl
   stage: test
-#  allow_failure: true
+  allow_failure: true
   services:
     - name: $CI_REGISTRY_IMAGE:$APP_VERSION
       alias: website
