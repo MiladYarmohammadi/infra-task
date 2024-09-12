@@ -77,9 +77,9 @@ deploy to production:
     - .prepare ssh
   script:
     - set -x
-    - ssh $PRODUCTION_SERVER "echo $DOCKER_REGISTRY_PASSWORD | docker login -u $DOCKER_REGISTRY_USERNAME --password-stdin"
+    - ssh $PRODUCTION_USER@$PRODUCTION_SERVER "echo $DOCKER_REGISTRY_PASSWORD | docker login -u $DOCKER_REGISTRY_USERNAME --password-stdin"
     - |
-      FORMER_IMAGE_NAME=$(docker inspect --format='{{.Config.Image}}' "$APP_NAME" 2>/dev/null || echo Not Found)
+      FORMER_IMAGE_NAME=$(ssh $PRODUCTION_USER@$PRODUCTION_SERVER docker inspect --format='{{.Config.Image}}' "$APP_NAME" 2>/dev/null || echo Not Found)
       if [ "$FORMER_IMAGE_NAME" != "Not Found" ]; then
         FORMER_IMAGE_VERSION=$(echo "$FORMER_IMAGE_NAME" | awk -F: '{print $2}')
         echo "Extracted version: $FORMER_IMAGE_VERSION"
@@ -102,9 +102,8 @@ test production server:
   extends:
     - .prepare ssh
   script:
-#    - chmod +x $VARIABLES_FILE
     - source $VARIABLES_FILE
-    - export
+    - echo FORMER_IMAGE_VERSION:: $FORMER_IMAGE_VERSION
     - CONTENT=$(curl -s "http://$PRODUCTION_SERVER:8000")
     - |
       if echo "$CONTENT" | grep -q Version | grep -q $APP_VERSION; then
