@@ -77,12 +77,15 @@ deploy to production:
     - .prepare ssh
   script:
     - ssh $PRODUCTION_SERVER "echo $DOCKER_REGISTRY_PASSWORD | docker login -u $DOCKER_REGISTRY_USERNAME --password-stdin"
-    - FORMER_IMAGE_NAME=$(docker inspect --format='{{.Config.Image}}' "$APP_NAME" 2>/dev/null || echo Not Found!)
-    - FORMER_IMAGE_VERSION=$(echo $FORMER_IMAGE_NAME | awk -F: '{print $2}')
-    - echo "$VERSION"
-    #    - ssh $PRODUCTION_SERVER microk8s kubectl set image deployment.apps $APP_NAME *=$DOCKER_REGISTRY_IMAGE:$APP_VERSION  # Kubernetes Version
-    - echo $PRODUCTION_SERVER
-    - echo $FORMER_IMAGE_NAME
+    - |
+      FORMER_IMAGE_NAME=$(docker inspect --format='{{.Config.Image}}' "$APP_NAME" 2>/dev/null || echo Not Found!)
+      if [ "$FORMER_IMAGE_NAME" != "Not Found!" ]; then
+        FORMER_IMAGE_VERSION=$(echo "$FORMER_IMAGE_NAME" | awk -F: '{print $2}')
+        echo "Extracted version: $FORMER_IMAGE_VERSION"
+      else
+        FORMER_IMAGE_VERSION=0
+        echo "Container not found!"
+      fi
     - sed -i "s/latest/$APP_VERSION/" docker-compose.yml.example
     - scp docker-compose.yml.example $PRODUCTION_USER@$PRODUCTION_SERVER:/tmp/docker-compose.yml
     - ssh $PRODUCTION_USER@$PRODUCTION_SERVER "cd /tmp && docker compose pull && docker compose up -d"
@@ -95,7 +98,26 @@ test production server:
     - .prepare ssh
   script:
     - curl http://$PRODUCTION_SERVER:8000 | grep $APP_VERSION
-    - if [[ $? -ne 0 ]]; then sed -i "s/$APP_VERSION/$FORMER_IMAGE_VERSION/" docker-compose.yml.example
-    - scp docker-compose.yml.example $PRODUCTION_USER@$PRODUCTION_SERVER:/tmp/docker-compose.yml
-    - ssh $PRODUCTION_USER@$PRODUCTION_SERVER "cd /tmp && docker compose pull && docker compose up -d"
-
+    - |
+      if [[ $? -ne 0 ]]; then
+        sed -i "s/$APP_VERSION/$FORMER_IMAGE_VERSION/" docker-compose.yml.example
+      else:
+        echo "Success"
+        exit 0
+      fi
+    - |
+      if [ $FORMER_IMAGE_VERSION -eq 0 ]; then
+        echo "Failed and cannot rollback!"
+        exit 1
+      else:
+        scp docker-compose.yml.example $PRODUCTION_USER@$PRODUCTION_SERVER:/tmp/docker-compose.yml
+        ssh $PRODUCTION_USER@$PRODUCTION_SERVER "cd /tmp && docker compose pull && docker compose up -d"
+        sleep 10
+        curl http://$PRODUCTION_SERVER:8000 | grep $FORMER_IMAGE_VERSION
+        if [[ $? -ne 0 ]]; then
+          echo "Rollback failed!"
+          exit 1
+      else:
+        echo "Rollback was Successful"
+        exit 0
+      fi
