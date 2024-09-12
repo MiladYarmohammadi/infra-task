@@ -158,3 +158,20 @@ test production server:
           fi
         fi
       fi
+
+
+complete migration:
+  stage: production
+  image: alpine
+  when: manual
+#  rules:
+#    - if: '$CI_COMMIT_TAG'
+  extends:
+    - .prepare ssh
+  script:
+    - set -x
+    - ssh $PRODUCTION_USER@$PRODUCTION_SERVER "echo $DOCKER_REGISTRY_PASSWORD | docker login -u $DOCKER_REGISTRY_USERNAME --password-stdin"
+    - sed -i "s/blue_version/$APP_VERSION/" docker-compose.yml.example
+    - sed -i "s/green_version/$APP_VERSION/" docker-compose.yml.example
+    - scp docker-compose.yml.example $PRODUCTION_USER@$PRODUCTION_SERVER:/tmp/docker-compose.yml
+    - ssh $PRODUCTION_USER@$PRODUCTION_SERVER "cd /tmp && docker compose pull && docker compose up -d"
