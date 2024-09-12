@@ -117,7 +117,8 @@ test production server:
         if [[ $? -ne 0 ]]; then
           echo "Rollback failed!"
           exit 1
-      else:
-        echo "Rollback was Successful"
-        exit 0
+        else:
+          echo "Rollback was Successful"
+          exit 0
+        fi
       fi
