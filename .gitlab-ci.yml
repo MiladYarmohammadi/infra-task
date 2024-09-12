@@ -121,13 +121,13 @@ test production server:
           scp docker-compose.yml.example $PRODUCTION_USER@$PRODUCTION_SERVER:/tmp/docker-compose.yml
           ssh $PRODUCTION_USER@$PRODUCTION_SERVER "cd /tmp && docker compose pull && docker compose up -d"
           sleep 10
-          curl http://$PRODUCTION_SERVER:8000 | grep -q Version | grep -q $FORMER_IMAGE_VERSION
-          if [ $? -ne 0 ]; then
-            echo "Rollback failed!"
-            exit 1
-          else
+          CONTENT=$(curl -s "http://$PRODUCTION_SERVER:8000")
+          if echo "$CONTENT" | grep -q Version | grep -q $FORMER_IMAGE_VERSION; then
             echo "Rollback was Successful"
             exit 0
+          else
+            echo "Rollback failed!"
+            exit 1
           fi
         fi
       fi
