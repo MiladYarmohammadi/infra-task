@@ -7,7 +7,7 @@ stages:
 
 variables:
   APP_VERSION: $CI_PIPELINE_IID
-  FORMER_IMAGE_VERSION: 0
+  VARIABLES_FILE: ./variables.txt
 
 
 .prepare ssh:
@@ -90,6 +90,10 @@ deploy to production:
     - sed -i "s/latest/$APP_VERSION/" docker-compose.yml.example
     - scp docker-compose.yml.example $PRODUCTION_USER@$PRODUCTION_SERVER:/tmp/docker-compose.yml
     - ssh $PRODUCTION_USER@$PRODUCTION_SERVER "cd /tmp && docker compose pull && docker compose up -d"
+    - echo "export FORMER_IMAGE_VERSION=$FORMER_IMAGE_VERSION" > $VARIABLES_FILE
+  artifacts:
+    paths:
+      - $VARIABLES_FILE
 
 
 test production server:
@@ -98,6 +102,7 @@ test production server:
   extends:
     - .prepare ssh
   script:
+    - source $VARIABLES_FILE
     - CONTENT=$(curl -s "http://$PRODUCTION_SERVER:8000")
     - |
       if echo "$CONTENT" | grep -q Version | grep -q $APP_VERSION; then
