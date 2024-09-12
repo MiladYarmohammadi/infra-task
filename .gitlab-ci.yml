@@ -100,7 +100,7 @@ test production server:
   script:
     - CONTENT=$(curl -s "http://$PRODUCTION_SERVER:8000")
     - |
-      if [ (echo "$CONTENT" | grep -q Version | grep -q $APP_VERSION)  ]; then
+      if echo "$CONTENT" | grep -q Version | grep -q $APP_VERSION; then
         echo "Success"
         exit 0
       else:
