@@ -111,6 +111,8 @@ test production server:
   stage: post production
   extends:
     - .prepare ssh
+  needs:
+    - deploy to production
   script:
     - set -x
     - source $VARIABLES_FILE
