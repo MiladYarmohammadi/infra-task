@@ -3,7 +3,8 @@ stages:
   - package
   - test
   - production
-  - post production
+  - blue green
+  - completion
 
 
 variables:
@@ -115,7 +116,7 @@ deploy to production:
 
 test production server:
   image: alpine
-  stage: post production
+  stage: blue green
   extends:
     - .prepare ssh
   needs:
@@ -161,7 +162,7 @@ test production server:
 
 
 complete migration:
-  stage: production
+  stage: completion
   image: alpine
   when: manual
 #  rules:
