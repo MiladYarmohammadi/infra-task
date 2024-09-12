@@ -75,6 +75,7 @@ deploy to kubernetes:
     #    - ssh $PRODUCTION_SERVER microk8s kubectl set image deployment.apps $APP_NAME *=$DOCKER_REGISTRY_IMAGE:$APP_VERSION  # Kubernetes Version
     - echo $PRODUCTION_SERVER
     - echo $FORMER_IMAGE_NAME
+    - sed -i "s/latest/$APP_VERSION/" docker-compose.yml.example
     - scp docker-compose.yml.example $PRODUCTION_SERVER:/tmp/docker-compose.yml
     - ssh $PRODUCTION_SERVER "cd /tmp && docker compose pull && docker compose up -d"
 
