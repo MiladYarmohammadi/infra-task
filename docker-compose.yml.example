@@ -28,6 +28,11 @@ services:
     networks:
       - db_net
       - public
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000 | grep 'BitPin Task'"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
 #  db:
 #    platform: linux/x86_64
