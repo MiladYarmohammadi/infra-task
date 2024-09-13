@@ -107,7 +107,7 @@ deploy to production:
     - sed -i "s/green_version/$APP_VERSION/" docker-compose.yml.example
     - scp docker-compose.yml.example $PRODUCTION_USER@$PRODUCTION_SERVER:/tmp/docker-compose.yml
     - echo "Updating Nginx config to 'prevent' traffic on green node"
-    - sed -i "s/server app_green/#server app_green/; nginx.conf
+    - sed -i "s/server app_green/#server app_green/" nginx.conf
     - scp nginx.conf $PRODUCTION_USER@$PRODUCTION_SERVER:/tmp/nginx.conf
     - ssh $PRODUCTION_USER@$PRODUCTION_SERVER "cd /tmp && docker compose pull && docker compose up -d && docker exec nginx nginx -s reload"
     - echo -e "export FORMER_IMAGE_VERSION=$FORMER_IMAGE_VERSION" > $VARIABLES_FILE
