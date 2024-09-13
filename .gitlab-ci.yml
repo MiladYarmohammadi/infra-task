@@ -107,6 +107,7 @@ deploy to production:
     - sed -i "s/blue_version/$FORMER_IMAGE_VERSION/" docker-compose.yml.example
     - sed -i "s/green_version/$APP_VERSION/" docker-compose.yml.example
     - scp docker-compose.yml.example $PRODUCTION_USER@$PRODUCTION_SERVER:/tmp/docker-compose.yml
+    - scp nginx.conf $PRODUCTION_USER@$PRODUCTION_SERVER:/tmp/nginx.conf
     - ssh $PRODUCTION_USER@$PRODUCTION_SERVER "cd /tmp && docker compose pull && docker compose up -d"
     - echo -e "export FORMER_IMAGE_VERSION=$FORMER_IMAGE_VERSION" > $VARIABLES_FILE
   artifacts:
@@ -144,6 +145,7 @@ test production server:
           sed -i "s/green_version/$FORMER_IMAGE_VERSION/" docker-compose.yml.example
           echo "Updating Nginx config to get traffic on green node"
           scp docker-compose.yml.example $PRODUCTION_USER@$PRODUCTION_SERVER:/tmp/docker-compose.yml
+          scp nginx.conf $PRODUCTION_USER@$PRODUCTION_SERVER:/tmp/nginx.conf
           ssh $PRODUCTION_USER@$PRODUCTION_SERVER "cd /tmp && docker compose pull && docker compose up -d"
           sleep 10
           CONTENT=$(curl -s "http://$PRODUCTION_SERVER:8001")
@@ -175,4 +177,5 @@ complete migration:
     - sed -i "s/blue_version/$APP_VERSION/" docker-compose.yml.example
     - sed -i "s/green_version/$APP_VERSION/" docker-compose.yml.example
     - scp docker-compose.yml.example $PRODUCTION_USER@$PRODUCTION_SERVER:/tmp/docker-compose.yml
+    - scp nginx.conf $PRODUCTION_USER@$PRODUCTION_SERVER:/tmp/nginx.conf
     - ssh $PRODUCTION_USER@$PRODUCTION_SERVER "cd /tmp && docker compose pull && docker compose up -d"
