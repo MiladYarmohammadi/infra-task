@@ -71,3 +71,8 @@ variables:
 There are two jobs named `.prepare ssh` and `.prepare app` which are preventing jobs from redundant commands. They are being used by extending them in some other jobs.
 
 Note: `deploy to production` job has some commented lines that can be uncommented based on situation.
+
+Possible Improvements:
+* Send jobs metrics to monitoring instances to detect bottlenecks, failures, and gather statistical numbers.
+* Use a centralized `.gitlab-ci.yml` file to use on different projects.
+* Improve this document for faster onboarding processes and training sessions.
