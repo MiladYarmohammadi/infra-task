@@ -11,7 +11,6 @@ variables:
   APP_VERSION: $CI_PIPELINE_IID
   VARIABLES_FILE: ./variables.txt
   APP_NAME: app_blue
-  LOGIN_REGISTRY_COMMAND: "echo $DOCKER_REGISTRY_PASSWORD | docker login -u $DOCKER_REGISTRY_USERNAME --password-stdin"
 
 
 .prepare ssh:
@@ -66,7 +65,7 @@ build docker image:
     - docker build -t $CI_REGISTRY_IMAGE -t $CI_REGISTRY_IMAGE:$APP_VERSION -t $DOCKER_REGISTRY_IMAGE -t $DOCKER_REGISTRY_IMAGE:$APP_VERSION .
     - 'if [ ! -z $CI_COMMIT_TAG ]; then docker tag $CI_REGISTRY_IMAGE:latest $CI_REGISTRY_IMAGE:prod; fi'
     - docker push --all-tags $CI_REGISTRY_IMAGE
-    - $LOGIN_REGISTRY_COMMAND
+    - echo $DOCKER_REGISTRY_PASSWORD | docker login -u $DOCKER_REGISTRY_USERNAME --password-stdin
     - docker push --all-tags $DOCKER_REGISTRY_IMAGE
 
 
@@ -101,7 +100,7 @@ deploy to production:
     - .prepare ssh
   script:
     - set -x
-    - ssh $PRODUCTION_USER@$PRODUCTION_SERVER "$LOGIN_REGISTRY_COMMAND"
+    - ssh $PRODUCTION_USER@$PRODUCTION_SERVER "echo $DOCKER_REGISTRY_PASSWORD | docker login -u $DOCKER_REGISTRY_USERNAME --password-stdin"
     - |
       FORMER_IMAGE_NAME=$(ssh $PRODUCTION_USER@$PRODUCTION_SERVER docker inspect --format='{{.Config.Image}}' "$APP_NAME" 2>/dev/null || echo Not Found)
       if [ "$FORMER_IMAGE_NAME" != "Not Found" ]; then
@@ -182,7 +181,7 @@ complete migration:
     - .prepare ssh
   script:
     - set -x
-    - ssh $PRODUCTION_USER@$PRODUCTION_SERVER "$LOGIN_REGISTRY_COMMAND"
+    - ssh $PRODUCTION_USER@$PRODUCTION_SERVER "echo $DOCKER_REGISTRY_PASSWORD | docker login -u $DOCKER_REGISTRY_USERNAME --password-stdin"
     - sed -i "s/blue_version/$APP_VERSION/" docker-compose.yml.example
     - sed -i "s/green_version/$APP_VERSION/" docker-compose.yml.example
     - scp docker-compose.yml.example $PRODUCTION_USER@$PRODUCTION_SERVER:/tmp/docker-compose.yml
