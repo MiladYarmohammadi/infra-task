@@ -11,7 +11,7 @@ variables:
   APP_VERSION: $CI_PIPELINE_IID
   VARIABLES_FILE: ./variables.txt
   APP_NAME: app_blue
-  LOGIN_REGISTRY_COMMAND: echo $DOCKER_REGISTRY_PASSWORD | docker login -u $DOCKER_REGISTRY_USERNAME --password-stdin
+  LOGIN_REGISTRY_COMMAND: "echo $DOCKER_REGISTRY_PASSWORD | docker login -u $DOCKER_REGISTRY_USERNAME --password-stdin"
 
 
 .prepare ssh:
