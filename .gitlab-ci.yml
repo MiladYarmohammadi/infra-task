@@ -3,63 +3,28 @@ stages:
   - package
   - test
   - production
-  - blue green
-  - completion
-
 
 variables:
   APP_VERSION: $CI_PIPELINE_IID
-  VARIABLES_FILE: ./variables.txt
-  APP_NAME: app_blue
-
-
-.prepare ssh:
-  before_script:
-    - apk --no-cache add openssh-client curl
-    - mkdir -p ~/.ssh
-    - eval $(ssh-agent -s)
-    - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
-    - chmod 600 $SSH_PRIVATE_KEY
-    - ssh-add $SSH_PRIVATE_KEY
-
-
-.prepare app:
-  before_script:
-    - cp .env.example .env
-    - sed -i "s/APP_KEY=.*/APP_KEY=$APP_KEY/" .env
-    - sed -i "s/REDIS_HOST=.*/REDIS_HOST=$REDIS_HOST/" .env
-    - sed -i "s/BITPIN_VERSION/$APP_VERSION/" resources/views/welcome.blade.php
-#    - rm .env  # intentional mistake
-
 
 unit test:
   image: php:8.2-alpine
   stage: unit test
-  extends:
-    - .prepare app
   before_script:
     - apk --no-cache add autoconf build-base curl
     - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
     - pecl install redis && docker-php-ext-enable redis
     - composer install
   script:
+    - cp .env.example .env
+    - sed -i "s/APP_KEY=.*/APP_KEY=$APP_KEY/" .env
     - php artisan test
-  rules:
-    - changes:
-        - app/**/*
-        - tests/**/*
-        - config/**/*
-        - database/**/*
-        - routes/**/*
-
 
 build docker image:
   stage: package
   image: docker:27.0.3
   services:
     - docker:27.0.3-dind
-  extends:
-    - .prepare app
   script:
     - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER $CI_REGISTRY --password-stdin
     - docker build -t $CI_REGISTRY_IMAGE -t $CI_REGISTRY_IMAGE:$APP_VERSION -t $DOCKER_REGISTRY_IMAGE -t $DOCKER_REGISTRY_IMAGE:$APP_VERSION .
@@ -67,7 +32,6 @@ build docker image:
     - docker push --all-tags $CI_REGISTRY_IMAGE
     - echo $DOCKER_REGISTRY_PASSWORD | docker login -u $DOCKER_REGISTRY_USERNAME --password-stdin
     - docker push --all-tags $DOCKER_REGISTRY_IMAGE
-
 
 test docker image:
   image: curlimages/curl
@@ -77,113 +41,24 @@ test docker image:
     - name: $CI_REGISTRY_IMAGE:$APP_VERSION
       alias: website
   script:
-    - set -x
-    - CONTENT=$(curl -s "http://website:8000")
-    - echo $CONTENT
-    - |
-      if echo "$CONTENT" | grep -q "Project Version: $APP_VERSION"; then
-        echo "Building was Successful"
-        exit 0
-      else
-        echo "Building failed!"
-        exit 1
-      fi
+    - curl http://website:8000 | grep "Infra Task"
 
-
-deploy to production:
+deploy to kubernetes:
   stage: production
   image: alpine
-#  when: manual
-#  rules:
-#    - if: '$CI_COMMIT_TAG'
-  extends:
-    - .prepare ssh
-  script:
-    - set -x
-    - ssh $PRODUCTION_USER@$PRODUCTION_SERVER "echo $DOCKER_REGISTRY_PASSWORD | docker login -u $DOCKER_REGISTRY_USERNAME --password-stdin"
-    - |
-      FORMER_IMAGE_NAME=$(ssh $PRODUCTION_USER@$PRODUCTION_SERVER docker inspect --format='{{.Config.Image}}' "$APP_NAME" 2>/dev/null || echo Not Found)
-      if [ "$FORMER_IMAGE_NAME" != "Not Found" ]; then
-        FORMER_IMAGE_VERSION=$(echo "$FORMER_IMAGE_NAME" | awk -F: '{print $2}')
-        echo "Extracted version: $FORMER_IMAGE_VERSION"
-      else
-        FORMER_IMAGE_VERSION=0
-        echo "Container not found!"
-      fi
-    - sed -i "s/blue_version/$FORMER_IMAGE_VERSION/" docker-compose.yml.example
-    - sed -i "s/green_version/$APP_VERSION/" docker-compose.yml.example
-    - scp docker-compose.yml.example $PRODUCTION_USER@$PRODUCTION_SERVER:/tmp/docker-compose.yml
-    - echo "Updating Nginx config to 'prevent' traffic on green node"
-    - sed -i "s/server app_green/#server app_green/" nginx.conf
-    - scp nginx.conf $PRODUCTION_USER@$PRODUCTION_SERVER:/tmp/nginx.conf
-    - ssh $PRODUCTION_USER@$PRODUCTION_SERVER "cd /tmp && docker compose pull && docker compose up -d && docker exec nginx nginx -s reload"
-    - echo -e "export FORMER_IMAGE_VERSION=$FORMER_IMAGE_VERSION" > $VARIABLES_FILE
-  artifacts:
-    paths:
-      - $VARIABLES_FILE
-
-
-test production server:
-  image: alpine
-  stage: blue green
-  extends:
-    - .prepare ssh
-  needs:
-    - deploy to production
-  script:
-    - set -x
-    - source $VARIABLES_FILE
-    - echo FORMER_IMAGE_VERSION $FORMER_IMAGE_VERSION
-    - CONTENT=$(curl -s "http://$PRODUCTION_SERVER:8001")
-    - echo $CONTENT
-    - |
-      if echo "$CONTENT" | grep -q "Project Version: $APP_VERSION"; then
-        echo "Success"
-        echo "Sending Alert! Using Push Gateway to send to the Prometheus that the new version deployed successfully."
-        echo "Updating Nginx config to 'allow' traffic on green node, in case it needed."
-        exit 0
-      else
-        echo FORMER_IMAGE_VERSION: $FORMER_IMAGE_VERSION
-        if [ $FORMER_IMAGE_VERSION -eq 0 ]; then
-          echo "Failed and cannot rollback!"
-          echo "Sending Alert! Using Push Gateway to send to the Prometheus that the new version failed and rollback process was not successful."
-          exit 1
-        else
-          sed -i "s/blue_version/$FORMER_IMAGE_VERSION/" docker-compose.yml.example
-          sed -i "s/green_version/$FORMER_IMAGE_VERSION/" docker-compose.yml.example
-          echo "Updating Nginx config to 'allow' traffic on green node"
-          scp docker-compose.yml.example $PRODUCTION_USER@$PRODUCTION_SERVER:/tmp/docker-compose.yml
-          scp nginx.conf $PRODUCTION_USER@$PRODUCTION_SERVER:/tmp/nginx.conf
-          ssh $PRODUCTION_USER@$PRODUCTION_SERVER "cd /tmp && docker compose pull && docker compose up -d && docker exec nginx nginx -s reload"
-          sleep 10
-          CONTENT=$(curl -s "http://$PRODUCTION_SERVER:8001")
-          if echo "$CONTENT" | grep -q "Project Version: $FORMER_IMAGE_VERSION"; then
-            echo "Rollback was Successful"
-            echo "Updating Nginx config to 'allow' traffic on green node"
-            echo "Sending Alert! Using Push Gateway to send to the Prometheus that the new version failed and rollback process was successful."
-            exit 0
-          else
-            echo "Rollback failed!"
-            echo "Sending Alert! Using Push Gateway to send to the Prometheus that the new version failed and rollback process was not successful."
-            exit 1
-          fi
-        fi
-      fi
-
-
-complete migration:
-  stage: completion
-  image: alpine
   when: manual
-#  rules:
-#    - if: '$CI_COMMIT_TAG'
-  extends:
-    - .prepare ssh
+  rules:
+    - if: '$CI_COMMIT_TAG'
+  variables:
+    APP_NAME: infra-task
+  before_script:
+    - apk add openssh-client
+    - mkdir -p ~/.ssh
+    - eval $(ssh-agent -s)
+    - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
+    - chmod 600 $SSH_PRIVATE_KEY
+    - ssh-add $SSH_PRIVATE_KEY
   script:
-    - set -x
-    - ssh $PRODUCTION_USER@$PRODUCTION_SERVER "echo $DOCKER_REGISTRY_PASSWORD | docker login -u $DOCKER_REGISTRY_USERNAME --password-stdin"
-    - sed -i "s/blue_version/$APP_VERSION/" docker-compose.yml.example
-    - sed -i "s/green_version/$APP_VERSION/" docker-compose.yml.example
-    - scp docker-compose.yml.example $PRODUCTION_USER@$PRODUCTION_SERVER:/tmp/docker-compose.yml
-    - scp nginx.conf $PRODUCTION_USER@$PRODUCTION_SERVER:/tmp/nginx.conf
-    - ssh $PRODUCTION_USER@$PRODUCTION_SERVER "cd /tmp && docker compose pull && docker compose up -d && docker exec nginx nginx -s reload"
+    - ssh $PRODUCTION_SERVER "echo $DOCKER_REGISTRY_PASSWORD | docker login -u $DOCKER_REGISTRY_USERNAME --password-stdin"
+    - ssh $PRODUCTION_SERVER microk8s kubectl set image deployment.apps $APP_NAME *=$DOCKER_REGISTRY_IMAGE:$APP_VERSION
+
